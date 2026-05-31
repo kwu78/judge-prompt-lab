@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.DS_Store
+
+# Output files — keep directory structure but not generated content
+results/*.json
+results/*.jsonl
+data/*.jsonl
+prompts/judge_prompt_candidate.md
