@@ -1,5 +1,8 @@
 .env
+.env.cursor
 .venv/
+node_modules/
+dist/
 __pycache__/
 *.py[cod]
 *.egg-info/

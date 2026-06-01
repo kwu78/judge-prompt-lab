@@ -1,0 +1,18 @@
+{
+  "name": "judge-prompt-lab-cursor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional Cursor SDK orchestration layer for judge-prompt-lab.",
+  "scripts": {
+    "orchestrate": "ts-node scripts/cursor_orchestrate.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.0"
+  }
+}
