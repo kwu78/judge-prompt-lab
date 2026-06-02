@@ -145,7 +145,18 @@ Cursor must not edit:
 - `src/metrics.py`, `src/load_data.py`, `src/run_judge.py`, `src/compare_prompts.py`
 - Dataset split logic, label mapping, or accept/reject rules
 
-See `agents/cursor_improver.md` for the full agent scope contract.
+See `agents/cursor_orchestrator.md` for the full agent scope contract.
+
+To run the orchestration demo (one guarded optimization iteration):
+
+```bash
+npm run orchestrate:demo
+```
+
+This can take **5–20 minutes** depending on sample size and API latency — the
+orchestrator runs a full optimize\_loop iteration (judge evaluation + optimizer call +
+candidate evaluation) before summarizing the outcome. If the default timeout is too
+short for your environment, set `ORCHESTRATE_TIMEOUT_MS` to a larger value (in ms).
 
 ## Environment variables
 
@@ -155,3 +166,5 @@ See `agents/cursor_improver.md` for the full agent scope contract.
 | `JUDGE_MODEL` | Model used as judge (default: `claude-sonnet-4-6`) |
 | `OPTIMIZER_MODEL` | Model used to revise the prompt (default: `claude-opus-4-8`) |
 | `HF_TOKEN` | Optional — needed only if HelpSteer2 requires auth |
+| `CURSOR_MODEL` | Model used by the Cursor orchestrator (default: `claude-opus-4-8`) |
+| `ORCHESTRATE_TIMEOUT_MS` | Shell command timeout for the orchestrator in ms (default: `1200000` = 20 min) |

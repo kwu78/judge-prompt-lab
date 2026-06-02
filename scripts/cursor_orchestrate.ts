@@ -23,6 +23,7 @@ dotenv.config({ path: ".env.cursor" }); // overrides .env if present
 const ROOT = path.resolve(__dirname, "..");
 const MODEL = process.env.CURSOR_MODEL ?? "claude-opus-4-8";
 const MAX_AGENT_TURNS = 20;
+const CMD_TIMEOUT_MS = parseInt(process.env.ORCHESTRATE_TIMEOUT_MS ?? "1200000", 10);
 
 // ---------------------------------------------------------------------------
 // Guardrail lists — enforced in code, not just in the prompt.
@@ -145,7 +146,7 @@ function toolRunCommand(command: string): string {
     return execSync(command, {
       cwd: ROOT,
       encoding: "utf-8",
-      timeout: 360_000, // 6 min — optimize_loop can be slow
+      timeout: CMD_TIMEOUT_MS,
     });
   } catch (e: any) {
     const out = [e.stdout, e.stderr].filter(Boolean).join("\n").trim();
@@ -207,8 +208,9 @@ async function main() {
       "Start by reading results/baseline_metrics.json and running python src/summarize_experiment.py.";
 
   console.log(`\njudge-prompt-lab Cursor orchestrator`);
-  console.log(`Model : ${MODEL}`);
-  console.log(`Goal  : ${userGoal}\n`);
+  console.log(`Model   : ${MODEL}`);
+  console.log(`Timeout : ${CMD_TIMEOUT_MS / 1000}s (ORCHESTRATE_TIMEOUT_MS)`);
+  console.log(`Goal    : ${userGoal}\n`);
   console.log("─".repeat(60));
 
   const messages: Anthropic.MessageParam[] = [

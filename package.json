@@ -4,7 +4,8 @@
   "private": true,
   "description": "Optional Cursor SDK orchestration layer for judge-prompt-lab.",
   "scripts": {
-    "orchestrate": "ts-node scripts/cursor_orchestrate.ts"
+    "orchestrate": "ts-node scripts/cursor_orchestrate.ts",
+    "orchestrate:demo": "ORCHESTRATE_GOAL=\"Run one guarded optimization iteration to demonstrate orchestration. Use the existing Python harness only. Do not manually edit files. Let optimize_loop.py decide accept/reject. After the run, summarize the outcome.\" npm run orchestrate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",
