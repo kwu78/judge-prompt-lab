@@ -125,6 +125,84 @@ judge-prompt-lab/
 - `src/metrics.py`, `src/load_data.py`, dataset labels, and split logic are never modified by the loop.
 - Evaluation is deterministic: fixed random seed, temperature 0 for the judge.
 
+## SHP pairwise preference mode
+
+HelpSteer2 mode assigns absolute 0–4 scores across five quality dimensions and
+calibrates the judge against human ratings via MAE. **SHP mode is different**: it
+asks the judge to choose between two responses and compares that choice to the
+human-preferred response (determined by Reddit upvote counts in the SHP dataset).
+
+| | HelpSteer2 | SHP |
+|---|---|---|
+| Task | Assign scores 0–4 per dimension | Pick the better of two responses |
+| Ground truth | Human ratings per dimension | Human-preferred response (A or B) |
+| Primary metric | Mean Absolute Error (MAE) | Accuracy |
+| Secondary metric | Bias per dimension | Position bias (A pick rate vs human A rate) |
+
+### Current SHP baseline
+
+Evaluated on 300 validation examples with `claude-sonnet-4-6` and the default
+`prompts/preference_judge_prompt.md`:
+
+| Metric | Value |
+|---|---|
+| Sample size (validation) | 300 |
+| Parse failures | 1 |
+| Accuracy | 0.625 |
+| Position bias | +0.027 |
+
+This is a pairwise preference task — the judge picks A or B, not a 0–4 score.
+Accuracy measures alignment with the Reddit community preference signal (upvotes),
+not factual correctness. A random baseline scores ≈ 0.50.
+
+### Quickstart
+
+```bash
+# 1. Inspect the dataset (confirm field names and label mapping before running the judge)
+python src/inspect_shp.py --split validation --sample-size 5
+
+# 2. Run the preference judge over a validation sample
+python src/run_preference_judge.py --split validation --sample-size 300 --seed 42
+
+# 3. Compute and print metrics
+python src/preference_metrics.py
+
+# 4. Run error analysis (domain breakdown, score_ratio buckets, label/score conflicts)
+python src/preference_error_analysis.py
+
+# 5. Print experiment summary
+python src/summarize_preference_experiment.py
+```
+
+**Position bias** is `judge_A_pick_rate − human_A_rate`. A value near zero means the
+judge is not systematically biased toward whichever response appears first (A).
+
+> Note: SHP mode is a standalone pipeline. It does not share code with the
+> HelpSteer2 optimization loop.
+
+### SHP preference optimization loop
+
+Iteratively improves `prompts/preference_judge_prompt.md` using the same
+guarded accept/reject logic as the HelpSteer2 loop, but measured by pairwise
+accuracy instead of MAE:
+
+- A candidate is **accepted** only if accuracy improves by ≥ `min_accuracy_delta` (default 0.02), parse failures do not increase, and split/sample_size match.
+- All decisions are logged to `results/preference_experiment_log.jsonl`.
+- The optimizer never sees the test split.
+
+```bash
+# Run 2 optimization iterations
+python src/optimize_preference_loop.py \
+    --iterations 2 \
+    --split validation \
+    --sample-size 300 \
+    --seed 42 \
+    --min-accuracy-delta 0.02
+
+# Print full experiment summary (includes loop history if log exists)
+python src/summarize_preference_experiment.py
+```
+
 ## Next phase: Cursor SDK orchestration
 
 The Python eval harness is the source of truth and the referee for all accept/reject decisions.
